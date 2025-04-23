@@ -1,7 +1,10 @@
 package com.budgetapp.backend.controller;
 
+import com.budgetapp.backend.dto.UserDto;
+import com.budgetapp.backend.dto.UserResponseDto;
 import com.budgetapp.backend.model.User;
 import com.budgetapp.backend.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +21,7 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    public User createUser(@RequestBody User user) {
-        return userService.createUser(user);
+    public UserResponseDto createUser(@RequestBody @Valid UserDto userDto) {
+        return userService.createUser(userDto);
     }
 }
