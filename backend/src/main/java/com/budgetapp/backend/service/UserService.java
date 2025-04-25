@@ -1,10 +1,12 @@
 package com.budgetapp.backend.service;
 
+import com.budgetapp.backend.dto.LoginResponseDto;
 import com.budgetapp.backend.dto.UserDto;
 import com.budgetapp.backend.dto.UserResponseDto;
 import com.budgetapp.backend.exception.InvalidCredentialsException;
 import com.budgetapp.backend.model.User;
 import com.budgetapp.backend.repository.UserRepository;
+import com.budgetapp.backend.security.JwtService;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,10 +15,12 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     private User toEntity(UserDto dto) {
@@ -47,7 +51,7 @@ public class UserService {
     };
 
 
-    public UserResponseDto login(String username, String rawPassword) {
+    public LoginResponseDto login(String username, String rawPassword) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(InvalidCredentialsException::new);
 
@@ -55,7 +59,10 @@ public class UserService {
             throw new InvalidCredentialsException();
         }
 
-        return toResponseDto(user);
+        String token = jwtService.generateToken(user);
+        UserResponseDto responseDto = toResponseDto(user);
+
+        return new LoginResponseDto(token, responseDto);
     }
 
 }

@@ -1,6 +1,7 @@
 package com.budgetapp.backend.controller;
 
 import com.budgetapp.backend.dto.LoginRequestDto;
+import com.budgetapp.backend.dto.LoginResponseDto;
 import com.budgetapp.backend.dto.UserDto;
 import com.budgetapp.backend.dto.UserResponseDto;
 import com.budgetapp.backend.service.UserService;
@@ -21,7 +22,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public UserResponseDto login(@RequestBody @Valid LoginRequestDto loginRequestDto) {
+    public LoginResponseDto login(@RequestBody @Valid LoginRequestDto loginRequestDto) {
         return userService.login(loginRequestDto.getUsername(), loginRequestDto.getPassword());
     }
 }
