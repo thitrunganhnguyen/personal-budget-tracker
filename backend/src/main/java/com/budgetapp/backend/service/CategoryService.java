@@ -19,7 +19,7 @@ public class CategoryService {
         Category category = new Category();
         category.setName(name);
         category.setUser(user);
-        categoryRepository.save(category);
+        return categoryRepository.save(category);
     }
 
     public List<Category> getCategoriesForUser(User user) {
