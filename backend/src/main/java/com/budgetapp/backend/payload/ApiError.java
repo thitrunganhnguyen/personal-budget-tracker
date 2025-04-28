@@ -1,4 +1,4 @@
-package com.budgetapp.backend.exception;
+package com.budgetapp.backend.payload;
 
 import lombok.Getter;
 
