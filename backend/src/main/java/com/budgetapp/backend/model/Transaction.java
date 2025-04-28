@@ -26,6 +26,9 @@ public class Transaction {
 
     private LocalDate date;
 
+    @Enumerated(EnumType.STRING)
+    private TransactionType type;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
