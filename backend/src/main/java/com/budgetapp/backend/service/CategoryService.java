@@ -1,5 +1,6 @@
 package com.budgetapp.backend.service;
 
+import com.budgetapp.backend.exception.CategoryAlreadyExistsException;
 import com.budgetapp.backend.model.Category;
 import com.budgetapp.backend.model.User;
 import com.budgetapp.backend.repository.CategoryRepository;
@@ -16,6 +17,13 @@ public class CategoryService {
     }
 
     public Category createCategory(String name, User user) {
+        // Check if user already has a category with this name
+        List<Category> existingCategories = categoryRepository.findByUser(user);
+        boolean nameAlreadyExists = existingCategories.stream()
+                .anyMatch(category -> category.getName().equalsIgnoreCase(name.trim()));
+        if (nameAlreadyExists) {
+            throw new CategoryAlreadyExistsException("Category with the same name already exists");
+        }
         Category category = new Category();
         category.setName(name);
         category.setUser(user);
