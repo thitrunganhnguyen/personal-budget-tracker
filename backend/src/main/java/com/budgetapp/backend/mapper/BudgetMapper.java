@@ -18,14 +18,14 @@ public interface BudgetMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", source = "user")
     @Mapping(target = "category", source = "category")
-    @Mapping(target = "adjustedBudget", source = "initialBudget") // Initially adjusted = initial
+    @Mapping(target = "adjustedBudget", source = "dto.initialBudget") // Initially adjusted = initial
     Budget toEntity(BudgetRequestDto dto, User user, Category category);
 
     // Update an existing Budget entity from BudgetRequestDto
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "category", ignore = true)
-    @Mapping(target = "adjustedBudget", source = "initialBudget") // Reset adjustedBudget
+    @Mapping(target = "adjustedBudget", source = "dto.initialBudget") // Reset adjustedBudget
     void updateEntity(@MappingTarget Budget budget, BudgetRequestDto dto);
 
     // Map Budget entity → BudgetResponseDto (basic fields)
