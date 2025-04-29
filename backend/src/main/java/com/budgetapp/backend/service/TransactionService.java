@@ -2,6 +2,7 @@ package com.budgetapp.backend.service;
 
 import com.budgetapp.backend.dto.TransactionRequestDto;
 import com.budgetapp.backend.dto.TransactionResponseDto;
+import com.budgetapp.backend.dto.TransactionSummaryDto;
 import com.budgetapp.backend.exception.CategoryNotFoundException;
 import com.budgetapp.backend.exception.TransactionNotFoundException;
 import com.budgetapp.backend.exception.UnauthorizedActionException;
@@ -13,6 +14,7 @@ import com.budgetapp.backend.repository.CategoryRepository;
 import com.budgetapp.backend.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -98,6 +100,12 @@ public class TransactionService {
         }
 
         transactionRepository.delete(transaction);
+    }
+
+    public TransactionSummaryDto getMonthlySummary(int year, int month, User user) {
+        BigDecimal totalIncome = transactionRepository.getTotalIncomeForMonth(user, year, month);
+        BigDecimal totalExpense = transactionRepository.getTotalExpenseForMonth(user, year, month);
+        return new TransactionSummaryDto(year, month, totalIncome, totalExpense);
     }
 
 }
