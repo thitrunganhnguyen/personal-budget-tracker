@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 1. Handle validation errors (e.g., @NotBlank)
+    // Handle validation errors (e.g., @NotBlank)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidationError(MethodArgumentNotValidException ex, HttpServletRequest request) {
         List<String> errors = ex.getBindingResult()
@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
     }
 
 
-    // 2. Handle Invalid Credentials (login error)
+    // Handle Invalid Credentials (login error)
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ApiError> handleInvalidCredentials(InvalidCredentialsException ex, HttpServletRequest request) {
         ApiError error = new ApiError(
@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
-    // 3. Handle Category Already Exists (duplicate category name)
+    // Handle Category Already Exists (duplicate category name)
     @ExceptionHandler(CategoryAlreadyExistsException.class)
     public ResponseEntity<ApiError> handleCategoryAlreadyExists(CategoryAlreadyExistsException ex, HttpServletRequest request) {
         ApiError error = new ApiError(
@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    // 4. Handle Category Not Found
+    // Handle Category Not Found
     @ExceptionHandler(CategoryNotFoundException.class)
     public ResponseEntity<ApiError> handleCategoryNotFound(CategoryNotFoundException ex, HttpServletRequest request) {
         ApiError error = new ApiError(
@@ -63,7 +63,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
-    // 5. Handle Unauthorized Actions
+    // Handle Transaction Not Found
+    @ExceptionHandler(TransactionNotFoundException.class)
+    public ResponseEntity<ApiError> handleTransactionNotFound(TransactionNotFoundException ex, HttpServletRequest request) {
+        ApiError error = new ApiError(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                request.getRequestURI());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    // Handle Unauthorized Actions
     @ExceptionHandler(UnauthorizedActionException.class)
     public ResponseEntity<ApiError> handleUnauthorizedAction(UnauthorizedActionException ex, HttpServletRequest request) {
         ApiError error = new ApiError(
@@ -73,7 +83,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
-    // 6. Handle all other unexpected errors
+    // Handle all other unexpected errors
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGenericException(Exception ex, HttpServletRequest request) {
         ApiError error = new ApiError(

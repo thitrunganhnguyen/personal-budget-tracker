@@ -3,9 +3,14 @@ package com.budgetapp.backend.dto;
 import com.budgetapp.backend.model.TransactionType;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+@Getter
+@Setter
 public class TransactionRequestDto {
 
     @NotNull(message = "Amount is required")
