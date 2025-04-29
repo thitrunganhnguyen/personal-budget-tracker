@@ -65,13 +65,20 @@ public class BudgetService {
         List<Budget> budgets = budgetRepository.findAllByUserAndYearAndMonth(user, year, month);
 
         // --- New: Fetch previous month's budgets at once
+        // Step 1: Use non-final initially
         int prevMonth = month - 1;
         int prevYear = year;
+
+        // Step 2: Correct rollover logic for January
         if (prevMonth == 0) {
             prevMonth = 12;
             prevYear = year - 1;
         }
 
+        // Step 3: Create final copies for lambda use
+        // Java requires all variables used inside lambdas to be: final OR effectively final
+        final int finalPrevMonth = prevMonth;
+        final int finalPrevYear = prevYear;
         List<Budget> previousBudgets = budgetRepository.findAllByUserAndYearAndMonth(user, prevYear, prevMonth);
 
         // --- New: Map <Category, Budget> for fast lookup
@@ -86,7 +93,7 @@ public class BudgetService {
                     Budget previousBudget = previousBudgetMap.get(category);
 
                     if (previousBudget != null) {
-                        BigDecimal lastMonthSpent = transactionRepository.sumExpensesForCategoryAndMonth(user, category, prevYear, prevMonth);
+                        BigDecimal lastMonthSpent = transactionRepository.sumExpensesForCategoryAndMonth(user, category, finalPrevMonth, finalPrevYear);
                         BigDecimal leftover = previousBudget.getAdjustedBudget().subtract(lastMonthSpent);
 
                         BigDecimal expectedAdjusted = budget.getInitialBudget().add(leftover);
