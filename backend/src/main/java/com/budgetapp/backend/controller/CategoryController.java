@@ -25,11 +25,11 @@ public class CategoryController {
 
     // 1. Create
     @PostMapping
-    public ResponseEntity<ApiResponse> createCategory(
+    public ResponseEntity<CategoryResponseDto> createCategory(
             @RequestBody @Valid CategoryRequestDto requestDto,
             @AuthenticationPrincipal User user) {
-        categoryService.createCategory(requestDto.getName(), user);
-        return new ResponseEntity<>(new ApiResponse(true, "Category created successfully"), HttpStatus.CREATED);
+        CategoryResponseDto createdCategory = categoryService.createCategory(requestDto, user);
+        return new ResponseEntity<>(createdCategory, HttpStatus.CREATED);
     }
 
     // 2. Read (Get all for user)
@@ -42,12 +42,12 @@ public class CategoryController {
 
     // 3. Update
     @PutMapping("/{categoryId}")
-    public ResponseEntity<ApiResponse> updateCategory(
+    public ResponseEntity<CategoryResponseDto> updateCategory(
             @PathVariable Long categoryId,
             @RequestBody @Valid CategoryRequestDto requestDto,
             @AuthenticationPrincipal User user) {
-        categoryService.updateCategory(categoryId, requestDto.getName(), user);
-        return ResponseEntity.ok(new ApiResponse(true, "Category updated successfully"));
+        CategoryResponseDto updatedCategory = categoryService.updateCategory(categoryId, requestDto, user);
+        return ResponseEntity.ok(updatedCategory);
     }
 
     // 4. Delete
