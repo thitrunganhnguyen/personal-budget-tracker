@@ -1,9 +1,11 @@
 package com.budgetapp.backend.service;
 
+import com.budgetapp.backend.dto.CategoryRequestDto;
 import com.budgetapp.backend.dto.CategoryResponseDto;
 import com.budgetapp.backend.exception.CategoryAlreadyExistsException;
 import com.budgetapp.backend.exception.CategoryNotFoundException;
 import com.budgetapp.backend.exception.UnauthorizedActionException;
+import com.budgetapp.backend.mapper.CategoryMapper;
 import com.budgetapp.backend.model.Category;
 import com.budgetapp.backend.model.User;
 import com.budgetapp.backend.repository.CategoryRepository;
@@ -16,24 +18,26 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
 
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
         this.categoryRepository = categoryRepository;
+        this.categoryMapper = categoryMapper;
     }
 
     // 1. Create
-    public void createCategory(String name, User user) {
+    public CategoryResponseDto createCategory(CategoryRequestDto requestDto, User user) {
         boolean exists = categoryRepository.findByUser(user).stream()
-                .anyMatch(c -> c.getName().equalsIgnoreCase(name.trim()));
+                .anyMatch(c -> c.getName().equalsIgnoreCase(requestDto.getName().trim()));
 
         if (exists) {
             throw new CategoryAlreadyExistsException("Category with the same name already exists");
         }
 
-        Category category = new Category();
-        category.setName(name.trim());
+        Category category = categoryMapper.toEntity(requestDto);
         category.setUser(user);
-        categoryRepository.save(category);
+        Category savedCategory = categoryRepository.save(category);
+        return categoryMapper.toDto(savedCategory);
     }
 
     // 2. Read
@@ -49,7 +53,7 @@ public class CategoryService {
     }
 
     // 3. Update
-    public void updateCategory(Long categoryId, String newName, User user) {
+    public CategoryResponseDto updateCategory(Long categoryId, CategoryRequestDto requestDto, User user) {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
 
@@ -57,8 +61,10 @@ public class CategoryService {
             throw new UnauthorizedActionException("Unauthorized to update this category");
         }
 
-        category.setName(newName.trim());
-        categoryRepository.save(category);
+        category.setName(requestDto.getName().trim());
+        Category updatedCategory = categoryRepository.save(category);
+
+        return categoryMapper.toDto(updatedCategory);
     }
 
     // 4. Delete
