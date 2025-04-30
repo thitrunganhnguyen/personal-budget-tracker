@@ -1,7 +1,10 @@
 package com.budgetapp.backend.payload;
 
+import lombok.Getter;
 import java.time.LocalDateTime;
 import java.util.List;
+
+@Getter
 
 public class ApiError {
     private int status;
@@ -27,5 +30,4 @@ public class ApiError {
         this.path = path;
     }
 
-    // Getters and setters
 }
