@@ -4,6 +4,7 @@ import com.budgetapp.backend.dto.LoginResponseDto;
 import com.budgetapp.backend.dto.UserDto;
 import com.budgetapp.backend.dto.UserResponseDto;
 import com.budgetapp.backend.exception.InvalidCredentialsException;
+import com.budgetapp.backend.exception.UsernameAlreadyExistsException;
 import com.budgetapp.backend.model.User;
 import com.budgetapp.backend.repository.UserRepository;
 import com.budgetapp.backend.security.JwtService;
@@ -45,6 +46,9 @@ public class UserService {
     }
 
     public UserResponseDto createUser(UserDto userDto) {
+        if (userRepository.existsByUsername(userDto.getUsername())) {
+            throw new UsernameAlreadyExistsException("Username already exists");
+        }
         User user = toEntity(userDto);
         User savedUser = userRepository.save(user);
         return toResponseDto(savedUser);

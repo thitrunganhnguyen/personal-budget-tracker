@@ -34,6 +34,16 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(UsernameAlreadyExistsException.class)
+    public ResponseEntity<ApiError> handleUsernameConflict(UsernameAlreadyExistsException ex, HttpServletRequest request) {
+        ApiError apiError = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+    }
+
 
     // Handle Invalid Credentials (login error)
     @ExceptionHandler(InvalidCredentialsException.class)
@@ -74,6 +84,7 @@ public class GlobalExceptionHandler {
                 request.getRequestURI());
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
+
 
     // Handle Unauthorized Actions
     @ExceptionHandler(UnauthorizedActionException.class)
