@@ -30,6 +30,10 @@
           <button :disabled="isSubmitting" type="submit" class="btn btn-primary w-100">Register</button>
           <p v-if="errorMessage" class="text-danger mt-2">{{ errorMessage }}</p>
         </form>
+        <p class="text-center mt-3">
+          Already have an account?
+          <RouterLink to="/login">Log in here</RouterLink>
+        </p>
       </div>
     </div>
   </div>

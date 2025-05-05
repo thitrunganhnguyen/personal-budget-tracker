@@ -57,10 +57,10 @@ public class UserService {
 
     public LoginResponseDto login(String username, String rawPassword) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(InvalidCredentialsException::new);
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
 
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
-            throw new InvalidCredentialsException();
+            throw new InvalidCredentialsException("Invalid username or password");
         }
 
         String token = jwtService.generateToken(user);
