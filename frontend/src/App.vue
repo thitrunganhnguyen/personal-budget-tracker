@@ -3,7 +3,24 @@ import { RouterView } from 'vue-router'
 </script>
 
 <template>
-    <RouterView />
+  <div id="app">
+    <!-- ✅ Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom px-4">
+      <RouterLink class="navbar-brand fw-bold me-4" to="/dashboard">💸 BudgetApp</RouterLink>
+      <div class="navbar-nav">
+        <RouterLink class="nav-link" to="/dashboard">Dashboard</RouterLink>
+        <!--
+        <RouterLink class="nav-link" to="/categories">Categories</RouterLink>
+        <RouterLink class="nav-link" to="/transactions">Transactions</RouterLink>
+        -->
+      </div>
+    </nav>
+
+    <!-- ✅ Page Content -->
+    <main class="container py-4">
+      <RouterView />
+    </main>
+  </div>
 </template>
 
 <style>
