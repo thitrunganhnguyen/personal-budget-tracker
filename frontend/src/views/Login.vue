@@ -46,6 +46,7 @@ export default {
 
         // Save JWT to localStorage
         localStorage.setItem('token', result.token);
+        localStorage.setItem('user', JSON.stringify(result.user));
 
         // Redirect to dashboard
         this.$router.push('/dashboard');
