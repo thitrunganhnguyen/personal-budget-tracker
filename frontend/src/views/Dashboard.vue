@@ -1,6 +1,6 @@
 <template>
   <div class="container mt-5">
-    <div class="text-center mb-4">
+    <div v-if="summary" class="text-center mb-4">
       <h1 class="display-4">Welcome, <span class="text-primary">{{ username }}</span> 👋</h1>
       <p class="lead">Here’s your financial overview for {{ summary.month }}/{{ summary.year }}</p>
     </div>
@@ -43,6 +43,7 @@
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { onMounted, ref } from 'vue'
