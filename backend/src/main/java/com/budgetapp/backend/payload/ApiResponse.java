@@ -1,5 +1,8 @@
 package com.budgetapp.backend.payload;
 
+import lombok.Getter;
+
+@Getter
 public class ApiResponse {
     private boolean success;
     private String message;

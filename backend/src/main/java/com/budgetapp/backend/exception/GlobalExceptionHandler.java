@@ -99,9 +99,11 @@ public class GlobalExceptionHandler {
     // Handle all other unexpected errors
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGenericException(Exception ex, HttpServletRequest request) {
+        // Log full stack trace to console
+        ex.printStackTrace();
         ApiError error = new ApiError(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Something went wrong",
+                ex.getMessage(),
                 request.getRequestURI());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
