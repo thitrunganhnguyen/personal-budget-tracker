@@ -39,4 +39,11 @@ public class BudgetController {
         return ResponseEntity.ok(budgets);
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<List<BudgetResponseDto>> getAllBudgets(@AuthenticationPrincipal User user) {
+        List<BudgetResponseDto> budgets = budgetService.getAllBudgets(user);
+        return ResponseEntity.ok(budgets);
+    }
+
+
 }

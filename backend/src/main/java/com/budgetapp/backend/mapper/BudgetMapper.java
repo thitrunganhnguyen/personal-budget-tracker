@@ -32,14 +32,15 @@ public interface BudgetMapper {
     @Mapping(source = "category.name", target = "categoryName")
     BudgetResponseDto toDto(Budget budget);
 
-    // 4. Map Budget entity + spentAmount → BudgetResponseDto (with calculations)
-    default BudgetResponseDto toDtoWithSpent(Budget budget, BigDecimal spentAmount) {
+    // 4. Map Budget entity + spentAmount + leftover → BudgetResponseDto (with calculations)
+    default BudgetResponseDto toDtoWithSpentAndLeftover(Budget budget, BigDecimal spentAmount, BigDecimal leftover) {
         if (budget == null) {
             return null;
         }
         BudgetResponseDto dto = toDto(budget); // Map basic fields automatically
         dto.setSpentAmount(spentAmount);
         dto.setRemainingBudget(budget.getAdjustedBudget().subtract(spentAmount));
+        dto.setLeftoverFromLastMonth(leftover);
         return dto;
     }
 

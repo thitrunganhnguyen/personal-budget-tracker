@@ -57,60 +57,87 @@ public class BudgetService {
 
         Budget savedBudget = budgetRepository.save(budget);
 
-        return budgetMapper.toDtoWithSpent(savedBudget, BigDecimal.ZERO); // No spent yet when creating
+        return budgetMapper.toDtoWithSpentAndLeftover(savedBudget, BigDecimal.ZERO, BigDecimal.ZERO); // No spent yet when creating
     }
 
 
     public List<BudgetResponseDto> getBudgetsForMonth(int year, int month, User user) {
-        List<Budget> budgets = budgetRepository.findAllByUserAndYearAndMonth(user, year, month);
-
-        // --- New: Fetch previous month's budgets at once
-        // Step 1: Use non-final initially
+        // Calculate previous month
         int prevMonth = month - 1;
         int prevYear = year;
 
-        // Step 2: Correct rollover logic for January
+        if (prevMonth == 0) {
+            prevMonth = 12;
+            prevYear = year - 1;
+        }
+        List<Budget> budgets = budgetRepository.findAllByUserAndYearAndMonth(user, year, month);
+        List<Budget> previousBudgets = budgetRepository.findAllByUserAndYearAndMonth(user, prevYear, prevMonth);
+
+        List<Budget> combined = new ArrayList<>();
+        combined.addAll(budgets);
+        combined.addAll(previousBudgets);
+
+        Map<String, Budget> budgetMap = combined.stream()
+                .collect(Collectors.toMap(
+                        b -> b.getCategory().getId() + "-" + b.getYear() + "-" + b.getMonth(),
+                        b -> b
+                ));
+
+        return budgets.stream()
+                .map(budget -> enrichBudget(budget, user, budgetMap))
+                .collect(Collectors.toList());
+    }
+
+    public List<BudgetResponseDto> getAllBudgets(User user) {
+        List<Budget> allBudgets = budgetRepository.findAllByUser(user);
+
+        // Pre-map for fast previous month lookup
+        Map<String, Budget> allBudgetsMap = allBudgets.stream()
+                .collect(Collectors.toMap(
+                        b -> b.getCategory().getId() + "-" + b.getYear() + "-" + b.getMonth(),
+                        b -> b
+                ));
+        return allBudgets.stream()
+                .map(budget -> enrichBudget(budget, user, allBudgetsMap))
+                .collect(Collectors.toList());
+    }
+
+    private BudgetResponseDto enrichBudget(Budget budget, User user, Map<String, Budget> allBudgetsMap) {
+        int year = budget.getYear();
+        int month = budget.getMonth();
+        Category category = budget.getCategory();
+
+        // Calculate previous month
+        int prevMonth = month - 1;
+        int prevYear = year;
+
         if (prevMonth == 0) {
             prevMonth = 12;
             prevYear = year - 1;
         }
 
-        // Step 3: Create final copies for lambda use
-        // Java requires all variables used inside lambdas to be: final OR effectively final
-        final int finalPrevMonth = prevMonth;
-        final int finalPrevYear = prevYear;
-        List<Budget> previousBudgets = budgetRepository.findAllByUserAndYearAndMonth(user, prevYear, prevMonth);
+        String prevKey = category.getId() + "-" + prevYear + "-" + prevMonth;
+        Budget previousBudget= allBudgetsMap.get(prevKey);
 
-        // --- New: Map <Category, Budget> for fast lookup
-        Map<Category, Budget> previousBudgetMap = previousBudgets.stream()
-                .collect(Collectors.toMap(Budget::getCategory, budget -> budget));
+        BigDecimal leftover = BigDecimal.ZERO;
 
-        return budgets.stream()
-                .map(budget -> {
-                    Category category = budget.getCategory();
+        if (previousBudget != null) {
+            BigDecimal lastMonthSpent = transactionRepository.sumExpensesForCategoryAndMonth(user, category, prevMonth, prevYear);
+            leftover = previousBudget.getAdjustedBudget().subtract(lastMonthSpent);
 
-                    // Lookup previous month budget fast (no DB query)
-                    Budget previousBudget = previousBudgetMap.get(category);
+            BigDecimal expectedAdjusted = budget.getInitialBudget().add(leftover);
+            if (budget.getAdjustedBudget().compareTo(expectedAdjusted) != 0) {
+                budget.setAdjustedBudget(expectedAdjusted);
+                budgetRepository.save(budget);
+            }
+        }
 
-                    if (previousBudget != null) {
-                        BigDecimal lastMonthSpent = transactionRepository.sumExpensesForCategoryAndMonth(user, category, finalPrevMonth, finalPrevYear);
-                        BigDecimal leftover = previousBudget.getAdjustedBudget().subtract(lastMonthSpent);
+        // Calculate this month's spending
+        BigDecimal spentAmount = transactionRepository.sumExpensesForCategoryAndMonth(
+                user, category, year, month
+        );
 
-                        BigDecimal expectedAdjusted = budget.getInitialBudget().add(leftover);
-                        if (budget.getAdjustedBudget().compareTo(expectedAdjusted) != 0) {
-                            budget.setAdjustedBudget(expectedAdjusted);
-                            budgetRepository.save(budget);
-                        }
-                    }
-
-                    // Now calculate this month's spending
-                    BigDecimal spentAmount = transactionRepository.sumExpensesForCategoryAndMonth(
-                            user, category, year, month
-                    );
-
-                    return budgetMapper.toDtoWithSpent(budget, spentAmount);
-                })
-                .collect(Collectors.toList());
+        return budgetMapper.toDtoWithSpentAndLeftover(budget, spentAmount, leftover);
     }
 
     public List<YearlyBudgetSummaryDto> getYearlyBudgetSummary(int year, User user) {
@@ -157,8 +184,6 @@ public class BudgetService {
 
         return yearlySummary;
     }
-
-
 
 
 }
