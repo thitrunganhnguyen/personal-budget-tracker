@@ -9,10 +9,9 @@ import { RouterView } from 'vue-router'
       <RouterLink class="navbar-brand fw-bold me-4" to="/dashboard">💸 BudgetApp</RouterLink>
       <div class="navbar-nav">
         <RouterLink class="nav-link" to="/dashboard">Dashboard</RouterLink>
-        <!--
         <RouterLink class="nav-link" to="/categories">Categories</RouterLink>
-        <RouterLink class="nav-link" to="/transactions">Transactions</RouterLink>
-        -->
+        <RouterLink class="nav-link" to="/budgets">Budgets</RouterLink>
+
       </div>
     </nav>
 

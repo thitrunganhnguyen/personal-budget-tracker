@@ -3,6 +3,7 @@ import Register from "@/views/Register.vue";
 import Login from "@/views/Login.vue";
 import Dashboard from "@/views/Dashboard.vue";
 import Categories from "@/views/Categories.vue";
+import Budgets from "@/views/Budgets.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,6 +39,11 @@ const router = createRouter({
       path: '/categories',
       name: 'Categories',
       component: Categories
+    },
+    {
+      path: '/budgets',
+      name: 'Budgets',
+      component: Budgets
     },
   ],
 })
