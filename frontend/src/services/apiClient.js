@@ -17,4 +17,20 @@ apiClient.interceptors.request.use((config) => {
   return config; // 3. Return the modified config, so request goes out with token
 });
 
+// Handle expired/invalid token globally
+apiClient.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      // Token invalid or expired
+      localStorage.removeItem('token');
+      // Optional: show a message
+      alert('Your session has expired. Please log in again.');
+      // Redirect to login
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default apiClient;
