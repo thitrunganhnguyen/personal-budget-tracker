@@ -1,19 +1,40 @@
 <template>
-  <div class="modal-backdrop d-flex align-items-center justify-content-center">
-    <div class="modal-content p-4 bg-white rounded shadow" style="max-width: 400px; width: 100%">
-      <h5>{{ title }}</h5>
-      <p>{{ message }}</p>
-      <div class="d-flex justify-content-end">
-        <button class="btn btn-secondary me-2" @click=" $emit('cancel')">Cancel</button>
-        <button class="btn btn-danger" @click=" $emit('confirm')">Delete</button>
+  <div
+    v-if="show"
+    class="modal fade show d-block"
+    tabindex="-1"
+    style="background-color: rgba(0,0,0,0.5);"
+    >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ title }}</h5>
+            <button type="button" class="btn-close" @click="cancel"></button>
+          </div>
+        <div class="modal-body">
+          <p>{{ message }}</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" @click="cancel">Abbrechen</button>
+          <button type="button" class="btn btn-danger" @click="confirm">Löschen</button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-defineProps(['title', 'message'])
-defineEmits(['confirm', 'cancel'])
+defineProps({
+  show: Boolean,
+  title: String,
+  message: String,
+});
+
+const emit = defineEmits(['confirm', 'cancel']);
+
+const confirm = () => emit('confirm');
+const cancel = () => emit('cancel');
+
 </script>
 
 <style scoped>
