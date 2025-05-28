@@ -59,6 +59,13 @@ public class TransactionService {
                 .collect(Collectors.toList());
     }
 
+    public List<TransactionResponseDto> getTransactionsForMonth(User user, int year, int month) {
+        List<Transaction> transactions = transactionRepository.findByUserAndMonthYear(user, year, month);
+        return transactions.stream()
+                .map(transactionMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
     public TransactionResponseDto updateTransaction(Long id, TransactionRequestDto dto, User user) {
         // Find existing transaction
         Transaction transaction = transactionRepository.findById(id)

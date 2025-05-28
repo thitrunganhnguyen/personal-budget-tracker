@@ -15,5 +15,6 @@ public class TransactionResponseDto {
     private TransactionType type;
     private String description;
     private LocalDate date;
+    private long categoryId;
     private String categoryName;
 }

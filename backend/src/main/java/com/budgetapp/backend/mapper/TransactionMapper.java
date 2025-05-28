@@ -11,6 +11,7 @@ import org.mapstruct.*;
 public interface TransactionMapper {
 
     // Mapping entity → response DTO
+    @Mapping(source = "category.id", target = "categoryId")
     @Mapping(source = "category.name", target = "categoryName")
     TransactionResponseDto toDto(Transaction transaction);
 

@@ -31,12 +31,17 @@ public class TransactionController {
         return new ResponseEntity<>(createdTransaction, HttpStatus.CREATED);
     }
 
-    // Get all transactions for user
+    // Get transaction
     @GetMapping
-    public ResponseEntity<List<TransactionResponseDto>> getAllTransactions(
-            @AuthenticationPrincipal User user) {
-        List<TransactionResponseDto> transactions = transactionService.getAllTransactions(user);
-        return ResponseEntity.ok(transactions);
+    public List<TransactionResponseDto> getTransactions(
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+        if (year != null && month != null) {
+            return transactionService.getTransactionsForMonth(user, year, month);
+        } else {
+            return transactionService.getAllTransactions(user);
+        }
     }
 
     // Update an existing transaction

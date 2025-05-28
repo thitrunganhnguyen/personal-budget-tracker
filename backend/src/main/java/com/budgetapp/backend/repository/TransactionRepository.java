@@ -30,4 +30,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("month") int month
     );
 
+    @Query("SELECT t FROM Transaction t " +
+            "WHERE t.user = :user " +
+            "AND YEAR(t.date) = :year " +
+            "AND MONTH(t.date) = :month")
+    List<Transaction> findByUserAndMonthYear(@Param("user") User user,
+                                             @Param("year") int year,
+                                             @Param("month") int month);
+
+
 }
