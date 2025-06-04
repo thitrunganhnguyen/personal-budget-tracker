@@ -91,10 +91,23 @@
       {{ showTransactions ? 'Hide' : 'Show' }} All Transactions
     </button>
     <!-- Filter Dropdown -->
-    <select v-model="selectedCategory" class="form-select w-auto mb-3">
-      <option value="">All Categories</option>
-      <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-    </select>
+    <div v-if="showTransactions" class="d-flex flex-wrap align-items-end gap-3 mb-3">
+      <select v-model="selectedCategory" class="form-select w-auto">
+        <option value="">All Categories</option>
+        <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+      </select>
+      <select v-model="selectedYear" class="form-select w-auto">
+        <option value="">All Years</option>
+        <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
+      </select>
+      <select v-model="selectedMonth" class="form-select w-auto">
+        <option value="">All Months</option>
+        <option v-for="m in 12" :key="m" :value="m">{{ formatMonth(m) }}</option>
+      </select>
+      <button class="btn btn-outline-secondary" @click="selectedCategory = selectedYear = selectedMonth = ''">
+        Reset Filter
+      </button>
+    </div>
     <!-- Transactions Table -->
     <div v-if="showTransactions">
       <div v-for="([month, txGroup]) in groupedTransactions" :key="month" class="mb-4">
@@ -173,6 +186,8 @@ const budgets = ref([]);
 const summary = ref(null);
 const categories = ref([]);
 const selectedCategory = ref('');
+const selectedYear = ref('');
+const selectedMonth = ref('');
 
 const transactionsToDelete = ref(null);
 const today = new Date();
@@ -205,16 +220,20 @@ const handleSubmit = async () => {
 };
 
 const groupedTransactions = computed(() => {
+  const filtered = allTransactions.value.filter((tx) => {
+    const txDate = new Date(tx.date);
+    const matchesCategory = selectedCategory.value ? tx.categoryId === selectedCategory.value : true;
+    const matchesMonth = selectedMonth.value ? (txDate.getMonth() + 1) === parseInt(selectedMonth.value) : true;
+    const matchesYear = selectedYear.value ? txDate.getFullYear() === parseInt(selectedYear.value) : true;
+
+    return matchesCategory && matchesMonth && matchesYear;
+  });
+
   const groups = {};
-
-  for (const tx of allTransactions.value) {
+  for (const tx of filtered) {
     const date = new Date(tx.date);
-    const key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`; // z. B. "2025-06"
-
-    if (!groups[key]) {
-      groups[key] = [];
-    }
-
+    const key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+    if (!groups[key]) groups[key] = [];
     groups[key].push(tx);
   }
   // Sortiert nach neuestem Monat zuerst
@@ -253,11 +272,13 @@ const deleteConfirm = async () => {
   showConfirm.value = false;
 }
 
-const filteredTransactions = computed(() => {
-  if(!selectedCategory.value) return allTransactions.value;
-  return allTransactions.value.filter(tx => tx.categoryId === selectedCategory.value);
-})
-
+const availableYears = computed(() => {
+  const years = new Set();
+  for (const tx of allTransactions.value) {
+    years.add(new Date(tx.date).getFullYear());
+  }
+  return Array.from(years).sort((a, b) => b - a);
+});
 
 onMounted(async () => {
   await fetchAll(); // transactions + summary
