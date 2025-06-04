@@ -21,7 +21,7 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   response => response,
   error => {
-    if (error.response && error.response.status === 401) {
+    if (error.response && error.response.status === 401 || error.response.status == 403) {
       // Token invalid or expired
       localStorage.removeItem('token');
       // Optional: show a message
