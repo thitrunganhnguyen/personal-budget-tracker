@@ -57,7 +57,8 @@ public class BudgetService {
 
         Budget savedBudget = budgetRepository.save(budget);
 
-        return budgetMapper.toDtoWithSpentAndLeftover(savedBudget, BigDecimal.ZERO, BigDecimal.ZERO); // No spent yet when creating
+        // Für sofortige Rückgabe noch kein Leftover oder Spending bekannt:
+        return budgetMapper.toDtoWithSpentAndLeftover(savedBudget, BigDecimal.ZERO, BigDecimal.ZERO);
     }
 
 
@@ -70,6 +71,7 @@ public class BudgetService {
             prevMonth = 12;
             prevYear = year - 1;
         }
+
         List<Budget> budgets = budgetRepository.findAllByUserAndYearAndMonth(user, year, month);
         List<Budget> previousBudgets = budgetRepository.findAllByUserAndYearAndMonth(user, prevYear, prevMonth);
 
@@ -108,34 +110,37 @@ public class BudgetService {
         Category category = budget.getCategory();
 
         // Calculate previous month
-        int prevMonth = month - 1;
-        int prevYear = year;
-
-        if (prevMonth == 0) {
-            prevMonth = 12;
-            prevYear = year - 1;
-        }
+        int prevMonth = (month == 1) ? 12 : month - 1;
+        int prevYear = (month == 1) ? year - 1 : year;
 
         String prevKey = category.getId() + "-" + prevYear + "-" + prevMonth;
         Budget previousBudget= allBudgetsMap.get(prevKey);
 
+
+
         BigDecimal leftover = BigDecimal.ZERO;
 
         if (previousBudget != null) {
-            BigDecimal lastMonthSpent = transactionRepository.sumExpensesForCategoryAndMonth(user, category, prevMonth, prevYear);
-            leftover = previousBudget.getAdjustedBudget().subtract(lastMonthSpent);
+            BigDecimal prevSpent = transactionRepository.sumExpensesForCategoryAndMonth(
+                    user, category.getId(), prevYear, prevMonth
+            );
+
+            leftover = previousBudget.getAdjustedBudget().subtract(prevSpent);
+
 
             BigDecimal expectedAdjusted = budget.getInitialBudget().add(leftover);
             if (budget.getAdjustedBudget().compareTo(expectedAdjusted) != 0) {
                 budget.setAdjustedBudget(expectedAdjusted);
-                budgetRepository.save(budget);
+                budgetRepository.save(budget); // Nur speichern, wenn nötig
             }
+
         }
 
         // Calculate this month's spending
         BigDecimal spentAmount = transactionRepository.sumExpensesForCategoryAndMonth(
-                user, category, year, month
+                user, category.getId(), year, month
         );
+
 
         return budgetMapper.toDtoWithSpentAndLeftover(budget, spentAmount, leftover);
     }
@@ -155,7 +160,7 @@ public class BudgetService {
 
             for (Budget budget : budgets) {
                 BigDecimal spentAmount = transactionRepository.sumExpensesForCategoryAndMonth(
-                        user, budget.getCategory(), year, month
+                        user, budget.getCategory().getId(), year, month
                 );
 
                 CategoryBudgetSummaryDto categoryDto = new CategoryBudgetSummaryDto();
