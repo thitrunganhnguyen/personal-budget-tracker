@@ -15,6 +15,11 @@ export const getTransactionsForMonth = async (year, month) => {
   return response.data;
 };
 
+// Get all transactions
+export const getAllTransactions = async () => {
+  const response = await apiClient.get('/transactions');
+  return response.data;
+}
 
 // Update a transaction by ID
 export const updateTransaction = async (id, transaction) => {
@@ -28,6 +33,7 @@ export const deleteTransaction = async (id) => {
 };
 
 // Get summary for a specific month/year
+// Juni 2025: Income: €0.00 | Expenses: €70.00
 export const getMonthlyTransactionSummary = async (year, month) => {
   const response = await apiClient.get('/transactions/summary', {
     params: { year, month },

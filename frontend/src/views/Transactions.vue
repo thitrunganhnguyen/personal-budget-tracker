@@ -90,32 +90,42 @@
     <button class="btn btn-secondary mb-2" @click="showTransactions = !showTransactions">
       {{ showTransactions ? 'Hide' : 'Show' }} All Transactions
     </button>
+    <!-- Filter Dropdown -->
+    <select v-model="selectedCategory" class="form-select w-auto mb-3">
+      <option value="">All Categories</option>
+      <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+    </select>
     <!-- Transactions Table -->
-    <table v-if="showTransactions" class="table table-striped">
-      <thead>
-        <tr>
-          <th>Category</th>
-          <th>Date</th>
-          <th>Amount</th>
-          <th>Description</th>
-          <th>Type</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="tx in transactions" :key="tx.id">
-          <td>{{ tx.categoryName }}</td>
-          <td>{{ tx.date }}</td>
-          <td>{{ tx.amount }}€</td>
-          <td>{{ tx.description }}</td>
-          <td>{{ tx.type }}</td>
-          <td>
-            <button class="btn btn-sm btn-outline-secondary me-1" @click="editTransaction(tx)">Edit</button>
-            <button class="btn btn-sm btn-outline-danger" @click="askDelete(tx)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-if="showTransactions">
+      <div v-for="([month, txGroup]) in groupedTransactions" :key="month" class="mb-4">
+        <h5 class="text-primary">{{ month }}</h5>
+        <table v-if="showTransactions" class="table table-striped">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Description</th>
+              <th>Type</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="tx in txGroup" :key="tx.id">
+              <td>{{ tx.categoryName }}</td>
+              <td>{{ tx.date }}</td>
+              <td>{{ tx.amount }}€</td>
+              <td>{{ tx.description }}</td>
+              <td>{{ tx.type }}</td>
+              <td>
+                <button class="btn btn-sm btn-outline-secondary me-1" @click="editTransaction(tx)">Edit</button>
+                <button class="btn btn-sm btn-outline-danger" @click="askDelete(tx)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+       </div>
+      </div>
 
     <ConfirmModal
       v-if="showConfirm"
@@ -125,16 +135,16 @@
       @confirm="deleteConfirm"
       @cancel="showConfirm = false"
     />
-
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import {ref, onMounted, computed} from 'vue';
 import {
   createTransaction,
   updateTransaction,
   getTransactionsForMonth,
+  getAllTransactions,
   deleteTransaction,
   getMonthlyTransactionSummary
 } from '@/services/transactionService.js';
@@ -142,6 +152,7 @@ import { getCategories } from '@/services/categoryService.js';
 import { getBudgetsForMonth } from "@/services/budgetService.js";
 import { formatMonth } from '@/utils/dateFormatter.js';
 import ConfirmModal from "@/components/ConfirmModal.vue";
+import {showToast} from "@/utils/toast.js";
 
 const form = ref({
   description: '',
@@ -157,9 +168,11 @@ const showTransactions = ref(false);
 const showConfirm = ref(false);
 
 const transactions = ref([]);
+const allTransactions = ref([]);
 const budgets = ref([]);
 const summary = ref(null);
 const categories = ref([]);
+const selectedCategory = ref('');
 
 const transactionsToDelete = ref(null);
 const today = new Date();
@@ -167,11 +180,12 @@ const year = today.getFullYear();
 const month = today.getMonth() + 1;
 
 const loadBudgets = async () => {
-  budgets.value = await  getBudgetsForMonth(year, month);
+  budgets.value = await getBudgetsForMonth(year, month);
 }
 
 const fetchAll = async () => {
   transactions.value = await getTransactionsForMonth(year, month);
+  allTransactions.value = await getAllTransactions();
   summary.value = await getMonthlyTransactionSummary(year, month);
   categories.value = await getCategories();
 };
@@ -180,13 +194,34 @@ const handleSubmit = async () => {
   console.log("Submitting form:", form.value);
   if (isEditing.value) {
     await updateTransaction(editId.value, form.value);
+    showToast("Erfolgreich bearbeitet")
   } else {
     await createTransaction(form.value);
+    showToast("Erfolgreich hinzugefügt")
   }
   await fetchAll();
   await loadBudgets();
   resetForm();
 };
+
+const groupedTransactions = computed(() => {
+  const groups = {};
+
+  for (const tx of allTransactions.value) {
+    const date = new Date(tx.date);
+    const key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`; // z. B. "2025-06"
+
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+
+    groups[key].push(tx);
+  }
+  // Sortiert nach neuestem Monat zuerst
+  // Object.entries(...) liefert ein Array in dem jedes Element ein Tupel (Paar) ist: [key, value].
+
+  return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
+});
 
 const editTransaction = (tx) => {
   form.value = { ...tx, categoryId: tx.categoryId };
@@ -214,8 +249,15 @@ const askDelete = (tx) => {
 const deleteConfirm = async () => {
   await deleteTransaction(transactionsToDelete.value.id);
   await fetchAll();
+  showToast("Erfolgreich gelöscht", "success")
   showConfirm.value = false;
 }
+
+const filteredTransactions = computed(() => {
+  if(!selectedCategory.value) return allTransactions.value;
+  return allTransactions.value.filter(tx => tx.categoryId === selectedCategory.value);
+})
+
 
 onMounted(async () => {
   await fetchAll(); // transactions + summary

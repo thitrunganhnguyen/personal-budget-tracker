@@ -22,10 +22,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     BigDecimal getTotalExpenseForMonth(@Param("user") User user, @Param("year") int year, @Param("month") int month);
 
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
-            "WHERE t.user = :user AND t.category = :category AND t.type = 'EXPENSE' AND YEAR(t.date) = :year AND MONTH(t.date) = :month")
+            "WHERE t.user = :user AND t.category.id = :categoryId AND t.type = 'EXPENSE' AND YEAR(t.date) = :year AND MONTH(t.date) = :month")
     BigDecimal sumExpensesForCategoryAndMonth(
             @Param("user") User user,
-            @Param("category") Category category,
+            @Param("categoryId") Long categoryId,
             @Param("year") int year,
             @Param("month") int month
     );

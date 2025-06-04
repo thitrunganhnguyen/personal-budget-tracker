@@ -4,6 +4,7 @@ import Login from "@/views/Login.vue";
 import Dashboard from "@/views/Dashboard.vue";
 import Categories from "@/views/Categories.vue";
 import Budgets from "@/views/Budgets.vue";
+import Transactions from "@/views/Transactions.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -45,6 +46,11 @@ const router = createRouter({
       name: 'Budgets',
       component: Budgets
     },
+    {
+      path: '/transactions',
+      name: 'Transactions',
+      component: Transactions
+    }
   ],
 })
 router.beforeEach((to, from, next) => {
